@@ -148,7 +148,7 @@ class BSON {
       _ret = typeof start === 'boolean' ? start : this.#return
     } else if (arguments.length == 2) {
       _start = typeof length === 'number' ? (parseInt(start) || 0) : 0
-      _length = typeof length === 'number' ? parseInt(length) : (parseInt(start) || this.#length)
+      _length = typeof length === 'number' ? (length < 0 ? this.#length : parseInt(length)) : (parseInt(start) || this.#length)
       _ret = typeof length === 'boolean' ? length : this.#return
     } else {
       _start = start

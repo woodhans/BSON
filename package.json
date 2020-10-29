@@ -1,0 +1,23 @@
+{
+  "name": "bson",
+  "version": "1.0.0",
+  "description": "BSON: handle frontend json data like mongodb",
+  "main": "BSON.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/woodhans/BSON.git"
+  },
+  "keywords": [
+    "bson",
+    "javascript"
+  ],
+  "author": "hans.wu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/woodhans/BSON/issues"
+  },
+  "homepage": "https://github.com/woodhans/BSON#readme"
+}
