@@ -1,5 +1,5 @@
 {
-  "name": "bson",
+  "name": "front-end-bson",
   "version": "1.0.0",
   "description": "BSON: handle frontend json data like mongodb",
   "main": "BSON.js",

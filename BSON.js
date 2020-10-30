@@ -9,7 +9,11 @@
  * @param key: String, bson key item default '_id'
  * @param customKey: Boolean, default false, if false, key item will auto increase 1 and can't edit whenever; else key item will random 32 string and u can edit when constructor or insert
  */
-class BSON {
+const Where = Symbol('Where')
+const generateKey = Symbol('generateKey')
+const Order = Symbol('Order')
+const currentBson = Symbol('currentBson')
+export default class BSON {
   // private variable
   #bson = [];
   #key = '_id';
@@ -29,7 +33,7 @@ class BSON {
     this.#hasKey = typeof key === 'boolean' ? key : !!customKey
     _bson.forEach((data, index) => {
       if (this.#hasKey) {
-        data[this.#key] = data[this.#key] || this.#generateKey()
+        data[this.#key] = data[this.#key] || this[generateKey]()
       } else {
         data[this.#key] = index + 1
       }
@@ -52,7 +56,7 @@ class BSON {
     }
     _bson.forEach((data, index) => {
       if (this.hasKey) {
-        data[this.#key] = data[this.#key] || this.#generateKey()
+        data[this.#key] = data[this.#key] || this[generateKey]()
       } else {
         data[this.#key] = (() => {
           return index + 1 + this.#bson[this.#bson.length - 1][this.#key]
@@ -68,7 +72,7 @@ class BSON {
     if (where !== '') {
       if (this.#bson.length > 0) {
         this.#bson.forEach((data, index) => {
-          if (this.#where(data, where)) {
+          if (this[Where](data, where)) {
             this.#bson.splice(index, 1)
           }
         })
@@ -76,6 +80,8 @@ class BSON {
     } else {
       if (confirm('您没有设置删除条件，将清空整个BSON数据，确定要如此吗？')) this.#bson = []
     }
+    this.#_bson = undefined
+    this.#length = this.#bson.length
     return this.#bson
   }
   update(set = '', where = '') {
@@ -83,7 +89,7 @@ class BSON {
       if (this.#bson.length > 0) {
         this.#bson.forEach((data, index) => {
           if (where !== '') {
-            if (this.#where(data, where)) {
+            if (this[Where](data, where)) {
               this.#bson[index] = {
                 ...data,
                 ...set
@@ -97,6 +103,8 @@ class BSON {
           }
         })
       }
+      this.#_bson = undefined
+      this.#length = _ret ? this.#bson.length : _bson.length
       return this.#bson
     } else {
       throw new Error('update sentence error!')
@@ -107,7 +115,7 @@ class BSON {
     let _where = typeof item === 'string' && /^(where)/i.test(item) ? item : typeof item === 'boolean' || typeof where === 'boolean' ? '' : typeof item === 'where' && /^(where)/i.test(where) ? where : ''
     let _ret = typeof item === 'boolean' ? item : typeof where === 'boolean' ? where : ret
     let _bson = []
-    let _current = this.#currentBson()
+    let _current = this[currentBson]()
     if (_current.length > 0) {
       let assembleData = (c) => {
         _item === '*' ? _bson.push(c) : () => {
@@ -121,7 +129,7 @@ class BSON {
       }
       _current.forEach(data => {
         if (_where !== '') {
-          if (this.#where(data, _where.replace(/where /i, ' '))) {
+          if (this[Where](data, _where.replace(/where /i, ' '))) {
             assembleData(data)
           }
         } else {
@@ -136,7 +144,7 @@ class BSON {
   sort(sort = this.#key, ret = this.#return) {
     let _sort = typeof sort !== 'string' ? this.#key : sort
     let _ret = typeof sort === 'boolean' ? sort : ret
-    this.#_bson = this.#sort(_sort)
+    this.#_bson = this[Order](_sort)
     this.#length = _ret ? this.#bson.length : this.#_bson.length
     return _ret ? this.data() : this
   }
@@ -155,7 +163,7 @@ class BSON {
       _length = length
       _ret = ret
     }
-    let _bson = this.#currentBson()
+    let _bson = this[currentBson]()
     let res = []
     _bson.forEach((item, index) => {
       if (index >= _start && index < _start + _length) {
@@ -163,16 +171,17 @@ class BSON {
       }
     })
     this.#_bson = res.concat()
+    this.#length = _ret ? this.#bson.length : _bson.length
     return _ret ? this.data() : this
   }
   data() {
-    let _bson = this.#currentBson()
+    let _bson = this[currentBson]()
     this.#_bson = undefined
     this.#length = this.#bson.length
     return _bson
   };
   // private method
-  #generateKey() {
+  [generateKey]() {
     let _rnd,
       str = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
       _arr = [];
@@ -182,7 +191,7 @@ class BSON {
     }
     return _arr.join('')
   };
-  #where(data, where) {
+  [Where](data, where) {
     // console.log(data, where)
     // 判断data数据是否符合where语句条件，然后返回boolean
     let condition = [];
@@ -233,9 +242,9 @@ class BSON {
     }
     return getWhere(where)
   };
-  #sort(sort) {
-    let _bson = this.#currentBson()
-    let _arr = sort.replace(/\, /g, ',').split(',')
+  [Order](order) {
+    let _bson = this[currentBson]()
+    let _arr = order.replace(/\, /g, ',').split(',')
     // console.log(_arr, 'sort')
     let compare = () =>{
       return (a, b) => {
@@ -257,7 +266,7 @@ class BSON {
     }
     return _bson.sort(compare())
   };
-  #currentBson() {
+  [currentBson] = () => {
     return this.#_bson ? this.#_bson.concat() : this.#bson.concat()
   }
 }
