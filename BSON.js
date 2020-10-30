@@ -9,11 +9,12 @@
  * @param key: String, bson key item default '_id'
  * @param customKey: Boolean, default false, if false, key item will auto increase 1 and can't edit whenever; else key item will random 32 string and u can edit when constructor or insert
  */
+'use strict'
 const Where = Symbol('Where')
 const generateKey = Symbol('generateKey')
 const Order = Symbol('Order')
 const currentBson = Symbol('currentBson')
-export default class BSON {
+class BSON {
   // private variable
   #bson = [];
   #key = '_id';
@@ -104,7 +105,7 @@ export default class BSON {
         })
       }
       this.#_bson = undefined
-      this.#length = _ret ? this.#bson.length : _bson.length
+      this.#length = this.#bson.length
       return this.#bson
     } else {
       throw new Error('update sentence error!')
@@ -270,3 +271,5 @@ export default class BSON {
     return this.#_bson ? this.#_bson.concat() : this.#bson.concat()
   }
 }
+
+module.exports = BSON
